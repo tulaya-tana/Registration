@@ -1,0 +1,7 @@
+Guide
+0. import maven project into ide and open terminal
+1. use command 'mvn clean install' for install libraries
+2. use command 'mvn spring-boot:run' for run spring boot
+3. import Registration.postman_collection.json into Postman
+4. use register for register user
+5. use getUser for get user information
