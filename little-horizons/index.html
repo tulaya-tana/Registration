@@ -268,8 +268,8 @@ if(k=='cafe'){[[-3,-2],[3,-2],[0,2]].forEach(a=>b(1.8,.9,1.8,0xc9a27a,a[0],0,a[1
 if(k=='pip'){b(2.5,.9,1.4,0xc9a27a,0,0,-3,1);note(i,rx,rz-1.6,'บันทึกของพิพ: “เสาหินโบราณถูกปลุกตามลำดับ… ใบไม้ ไฟ ตะวัน และจบที่ท้องฟ้า”')}
 if(k=='home'){b(2.4,.8,3.2,0xff8fab,-4.5,0,-5,1);b(2,3.2,1,0x8b6b4a,4.5,0,-6.8,0);IA.push({room:i,x:rx-4.5,z:rz-3,r:2.4,tx:'นอนหลับ (ถึงเช้า)',fn:()=>{S.t=6.5;toast('ตื่นเช้าอย่างสดชื่น (บันทึกแล้ว)');upd();save()}});IA.push({room:i,x:rx+4.5,z:rz-5.6,r:2.4,tx:'ตู้เสื้อผ้า (เปลี่ยนชุด/อาชีพ)',fn:()=>{const e=$('inv');e.style.display='block';charUI(e,1)}})}
 IA.push({room:-1,x:HS[i][0],z:HS[i][1]+3.5,r:2.1,tx:'เข้า'+HN[i],fn:()=>enter(i)})}
-function enter(i){const p=pl.position;FLY=0;ret=[HS[i][0],HS[i][1]+5];room=i;p.set(200+i*30,100,5);vx=vz=0;yaw=0;rg0=reg(p.x,p.z);toast('เข้า'+HN[i])}
-function leave(){const p=pl.position;p.set(ret[0],H(ret[0],ret[1]),ret[1]);room=-1;vx=vz=0;rg0=reg(p.x,p.z)}
+function enter(i){const p=pl.position;FLY=0;ret=[HS[i][0],HS[i][1]+5];room=i;IN=1;p.set(200+i*30,100,5);vx=vz=0;yaw=0;rg0=reg(p.x,p.z);toast('เข้า'+HN[i])}
+function leave(){const p=pl.position;p.set(ret[0],H(ret[0],ret[1]),ret[1]);room=-1;IN=0;vx=vz=0;rg0=reg(p.x,p.z)}
 HS.forEach((h,i)=>room_(i));
 // ===== world secrets
 const mk=(x,z,y,c,geo)=>{const m=B(geo,M(c,{emissive:c,emissiveIntensity:.5}),x,y,z);sc.add(m);return m};

@@ -303,7 +303,49 @@
     [[-24, -2, 'HomeBlue', .6], [22, 22, 'HomeYellow', -2.4]].forEach(q => { put(q[2], q[0], q[1], 4.6, q[3], H(q[0], q[1]) - .25); cols.push([q[0], q[1], 3]); });
   }
 
+  // ================= INTERIORS: medieval furniture (KayKit Dungeon Remastered + Furniture Bits, Quaternius bookcase)
+  async function interiors() {
+    const g = await ld('interior.json'); if (!g) return;
+    g.scene.traverse(c => { if (c.isMesh && /Bookcase/.test(c.parent && c.parent.name || '')) [].concat(c.material).forEach(m => { if (m.color.r * .3 + m.color.g * .59 + m.color.b * .11 < .35) m.color.multiplyScalar(1.7); }); });
+    libAdd(g);
+    // room i lives at (200 + i*30, 100, 0); children 0-4 are floor, 3 walls and door mat
+    const rooms = [0, 1, 2, 3, 4].map(i => sc.children.find(o => o.isGroup && o.position.y == 100 && Math.abs(o.position.x - (200 + i * 30)) < .01));
+    const KEEP = { 1: [7], 2: [8] };                          // library book plank (puzzle), cafe menu board
+    const wood = M(0x6b4430), plaster = 0xf3e8d2;
+    rooms.forEach((rm, i) => { if (!rm) return;
+      rm.children.forEach((c, k) => { if (c.isMesh && k >= 5 && !(KEEP[i] || []).includes(k)) c.visible = false; });
+      [1, 2, 3].forEach(k => rm.children[k].material = M(plaster));
+      // half-timbered walls: posts + a beam along the top, like the houses outside
+      for (let x = -7.5; x <= 7.5; x += 3.75) rm.add(B(new T.BoxGeometry(.35, 4, .2), wood, x, 2, -7.25));
+      for (let z = -7.5; z <= 7.5; z += 3.75) [-1, 1].forEach(sd => rm.add(B(new T.BoxGeometry(.2, 4, .35), wood, sd * 7.25, 2, z)));
+      rm.add(B(new T.BoxGeometry(15, .3, .25), wood, 0, 3.9, -7.25)); [-1, 1].forEach(sd => rm.add(B(new T.BoxGeometry(.25, .3, 15), wood, sd * 7.25, 3.9, 0)));
+      rm.add(B(new T.BoxGeometry(15, .2, .2), wood, 0, 1.4, -7.3));
+    });
+    const add = (i, n, x, z, s = 1, ry = 0, y = 0) => { const rm = rooms[i], o = part(n); if (!rm || !o) return; const K = /rug|torch/.test(n) ? 1 : 1.25; if (y > 0 && y < 2) y *= K; o.scale.setScalar(s * K); o.rotation.y = ry; o.position.set(x, y, z); rm.add(o); return o; };
+    rooms.forEach((rm, i) => { add(i, 'torch_mounted', -3.75, -7.05, 1.1, 0, 2.4); add(i, 'torch_mounted', 3.75, -7.05, 1.1, 0, 2.4); });
+    // 0 shop
+    if (window.SHOPK) { SHOPK.position.set(4.3, 0, -3); SHOPK.rotation.y = -.5; }
+    add(0, 'table_long_tablecloth_decorated_A', 0, -2.4, 1.05, P / 2); add(0, 'coin_stack_large', 1.8, -2.4, .45, 0, 1.05);
+    add(0, 'keg_decorated', -5, -6.3, .9); add(0, 'crates_stacked', 4.8, -6.1, 1.1); add(0, 'barrel_large', -6.2, -3.5, 1);
+    add(0, 'barrel_small_stack', 6, 1, 1, -P / 2); add(0, 'shelf_small_candles', 0, -7.15, 1.4, 0, 2.6); add(0, 'rug_rectangle_stripes_A', 0, 2.5, 1.4);
+    // 1 library (the coloured puzzle books stay on their plank)
+    add(1, 'Bookcase_Full', -5.4, -7, 1.3); add(1, 'Bookcase_Full', 5.4, -7, 1.3);
+    [-3, 1.5].forEach(z => { add(1, 'Bookcase_Full', -7, z, 1.3, P / 2); add(1, 'Bookcase_Full', 7, z, 1.3, -P / 2); });
+    add(1, 'table_medium_decorated_A', 0, -3, 1.05); add(1, 'book_set', -.4, -3, 1.2, .3, 1.05); add(1, 'chair', 0, -1.6, 1.3, P);
+    add(1, 'candle_lit', .7, -3.4, 1, 0, 1.05); add(1, 'rug_oval_A', 0, 1.5, 1.6);
+    // 2 cafe
+    [[-3, -2], [3, -2], [0, 2]].forEach(q => { add(2, 'table_small_decorated_A', q[0], q[1], 1.4); add(2, 'stool', q[0] - 1.3, q[1], 1.3); add(2, 'stool', q[0] + 1.3, q[1], 1.3); });
+    add(2, 'keg_decorated', -5.4, -6.4, 1.1); add(2, 'barrel_large', 6, -6.2, 1); add(2, 'barrel_small_stack', 6.2, -2.5, 1, -P / 2); add(2, 'plate_food_A', -3, -2.3, .6, 0, 1.05);
+    // 3 pip's house
+    add(3, 'table_medium_decorated_A', 0, -3, 1.05); add(3, 'stool', -1.6, -3, 1.3); add(3, 'stool', 1.6, -3, 1.3);
+    add(3, 'crates_stacked', -5.6, -6, 1.1); add(3, 'barrel_large', 5.8, -6, 1); add(3, 'trunk_large_A', -5.8, 2.5, 1.1, P / 2);
+    add(3, 'sword_shield', 0, -7.2, 1, 0, 2.6); add(3, 'rug_rectangle_stripes_A', 0, 2, 1.3);
+    // 4 my house: bed where the old bed was, chest where the wardrobe was
+    add(4, 'bed_decorated', -4.5, -5, 1.25); add(4, 'trunk_large_A', 4.5, -6.6, 1.3); add(4, 'shelf_small_candles', 4.5, -7.15, 1.4, 0, 2.3);
+    add(4, 'table_small_decorated_A', 3, -1.5, 1.4); add(4, 'chair', 3, -.2, 1.3, P); add(4, 'rug_oval_A', -1, 1.5, 1.6); add(4, 'candle_triple', -6.6, -2.6, 1.2);
+  }
+
   // ---------- go
   playerModel();
-  Promise.all([world(), village(), npcModels(), critters()]).then(() => prog());
+  Promise.all([world(), village(), interiors(), npcModels(), critters()]).then(() => prog());
 })();
