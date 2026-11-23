@@ -272,6 +272,7 @@
       w.position.set(m.x, gy + (m.fly ? m.fly + Math.sin(t * 2 + m.hx) * .25 : 0), m.z);
       w.rotation.y += Math.atan2(Math.sin(m.a - w.rotation.y), Math.cos(m.a - w.rotation.y)) * Math.min(1, dt * 6);
       if (!m.fly) m.r.play(m.mv ? 'Walk' : 'Idle'); m.r.mx.update(dt); });
+    if (fan) fan.rotation.z += dt * .8;
     // chests, gems, fish
     chestList.forEach(g => { const [c, o, op] = g.userData.ch, v = !!op(); c.visible = !v; o.visible = v; });
     gems.forEach((o, i) => { o.rotation.y = t * .8 + i; o.position.y = .55 + Math.sin(t * 2 + i) * .08; });
@@ -283,7 +284,26 @@
       if (k >= 1) { sc.remove(j.o); jumps.splice(i, 1); } }
   };
 
+  // ================= VILLAGE: medieval buildings (KayKit Medieval Hexagon)
+  let fan = null;
+  async function village() {
+    const g = await ld('village.json'); if (!g) return; libAdd(g);
+    const HX = [[-14, -8], [14, -9], [15, 12], [-15, 13], [0, -19]];
+    // name, scale (buildings are ~1 unit; the old houses were 5x5 with the door facing +z)
+    const BD = [['Shop', 4.4], ['Library', 5.6], ['Cafe', 5.2], ['PipHouse', 5.6], ['MyHouse', 6.6]];
+    const old = sc.children.filter(o => o.isGroup && HX.some(q => Math.abs(o.position.x - q[0]) < .01 && Math.abs(o.position.z - q[1]) < .01));
+    if (!HX.every(q => LIB[BD[0][0]])) return; old.forEach(o => o.visible = false);
+    HX.forEach((q, i) => put(BD[i][0], q[0], q[1], BD[i][1], 0, H(q[0], q[1]) - .25));
+    // windmill on the hill (spinning fan) and the village well
+    if (typeof wm !== 'undefined' && LIB.Windmill) { wm.children.forEach(c => c.visible = false); const w = put('Windmill', wm.position.x, wm.position.z, 6, -P / 2, wm.position.y - .3);
+      w && w.traverse(c => { if (/fan/.test(c.name) && !fan) fan = c; }); cols.push([wm.position.x, wm.position.z, 2.6]); }
+    const well = sc.children.find(o => o.isGroup && Math.abs(o.position.x - 8) < .01 && Math.abs(o.position.z - 3) < .01);
+    if (well && LIB.Well) { well.visible = false; put('Well', 8, 3, 2.6, 0, well.position.y - .1); }
+    // a couple of extra cottages on the village edge
+    [[-24, -2, 'HomeBlue', .6], [22, 22, 'HomeYellow', -2.4]].forEach(q => { put(q[2], q[0], q[1], 4.6, q[3], H(q[0], q[1]) - .25); cols.push([q[0], q[1], 3]); });
+  }
+
   // ---------- go
   playerModel();
-  Promise.all([world(), npcModels(), critters()]).then(() => prog());
+  Promise.all([world(), village(), npcModels(), critters()]).then(() => prog());
 })();
