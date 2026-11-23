@@ -1,0 +1,2 @@
+const {NodeIO}=require('@gltf-transform/core');const {ALL_EXTENSIONS}=require('@gltf-transform/extensions');const {prune}=require('@gltf-transform/functions');const fs=require('fs');
+(async()=>{const io=new NodeIO().registerExtensions(ALL_EXTENSIONS);for(const f of process.argv.slice(2)){const d=await io.read(f);await d.transform(prune());await io.write(f,d);console.log(f.split('/').pop(),(fs.statSync(f).size>>10)+'KB',d.getRoot().listAnimations().length+' anims')}})();
