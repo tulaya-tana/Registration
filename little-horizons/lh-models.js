@@ -40,6 +40,26 @@
     x.putImageData(d, 0, 0); const n = new T.CanvasTexture(c); n.flipY = t.flipY; n.encoding = T.LinearEncoding;
     n.wrapS = t.wrapS; n.wrapT = t.wrapT; return HC[k] = n;
   }
+  // outfit recolour for the player: paints outfit/armour pixels in the chosen outfit colour (keeping their shading),
+  // so what you pick in the character menu is what you see. Skin, hair/leather browns, black and white are kept.
+  function outfitTex(t, hex) {
+    if (!t || !t.image) return t; const k = t.uuid + 'o' + hex; if (HC[k]) return HC[k];
+    const im = t.image, c = document.createElement('canvas'); c.width = im.width; c.height = im.height;
+    const x = c.getContext('2d'); x.drawImage(im, 0, 0); const d = x.getImageData(0, 0, c.width, c.height), a = d.data, col = new T.Color(), h = {}, tg = {};
+    new T.Color(hex).getHSL(tg); const skin = q => q.h > .03 && q.h < .14;
+    const grey = tg.s < .12;
+    for (let i = 0; i < a.length; i += 4) { col.setRGB(a[i] / 255, a[i + 1] / 255, a[i + 2] / 255).getHSL(h);
+      if (h.l < .1 || h.l > .92 || (h.s >= .2 && skin(h))) continue;
+      const l = Math.min(.85, h.l * .6 + tg.l * .45), sat = grey ? 0 : h.s >= .2 ? Math.max(tg.s, h.s) * .9 : tg.s * .5;
+      col.setHSL(tg.h, sat, l); a[i] = col.r * 255; a[i + 1] = col.g * 255; a[i + 2] = col.b * 255; }
+    x.putImageData(d, 0, 0); const n = new T.CanvasTexture(c); n.flipY = t.flipY; n.encoding = T.LinearEncoding; n.wrapS = t.wrapS; n.wrapT = t.wrapT; return HC[k] = n;
+  }
+  function dressOutfit(o, hex, cape) {
+    o.traverse(c => { if (!c.isMesh) return; const m = c.material, nm = c.name + ' ' + (c.parent && c.parent.name);
+      if (/Cape/.test(nm)) { m.map = null; m.color.set(cape); }
+      else if (/Body|Arm|Leg|Head|Hat|Helmet/.test(nm) && m.map) m.map = outfitTex(m.map, hex);
+      m.needsUpdate = true; });
+  }
   function dress(o, hue, cape) {
     o.traverse(c => { if (!c.isMesh) return; const m = c.material; if (hue && m.map) m.map = hueTex(m.map, hue);
       if (cape != null && /Cape/.test(c.name + (c.parent && c.parent.name))) { m.map = null; m.color.set(cape); } m.needsUpdate = true; });
@@ -81,12 +101,12 @@
   const RD = () => R();
 
   // ================= PLAYER & NPCs (KayKit Adventurers)
-  const CM = ['Knight', 'Mage', 'Rogue_Hooded', 'Rogue'], HUE = [0, 100, 200, 290], KS = 1.05;
+  const CM = ['Knight', 'Mage', 'Rogue_Hooded', 'Rogue'], KS = 1.05;
   let PR = null, want = '';
   async function playerModel() {
     const C = LX.CH, key = C.c + '_' + C.o + '_' + C.h; want = key;
     if (!PR || PR.key != key) { const g = await ld('chars/' + CM[C.c] + '.json'); if (!g || want != key) return;
-      const r = rig(g, KS, { em: 0x1a1a1a }); dress(r.o, HUE[C.o], C.h); r.key = key; r.play('Idle'); PR = r; }
+      const r = rig(g, KS, { em: 0x1a1a1a }); dressOutfit(r.o, LX.CL[C.c].cols[C.o][0], C.h); r.key = key; r.play('Idle'); PR = r; }
     if (PR.w.parent !== pm) pm.add(PR.w); hideKids(pm, [PR.w, LX.wg]);
   }
   window.onRebuild = playerModel;
