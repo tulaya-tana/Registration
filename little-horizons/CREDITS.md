@@ -16,12 +16,17 @@ All models are **CC0 1.0 (public domain)**: free for personal and commercial use
 | Fish (Clownfish, Blue Tang, Koi, Puffer, …) | Cute Fish | Quaternius | https://quaternius.com/packs/cutefish.html |
 | Palm trees, fish bucket, gems | Pirate Kit | Quaternius | https://quaternius.com/packs/piratekit.html |
 
+## Sound
+- Sound effects (`sounds/*.mp3`, converted from .ogg): Kenney's Starter Kits (3D Platformer, FPS, City Builder, Racing) — MIT License, © Kenney; see `sounds/LICENSE-kenney.txt`.
+- Music is generated live in the browser (`lh-combat.js`): cozy by day, softer at night, faster when fighting.
+
 ## Files
 - `models/chars/*.json` (+ `_0.png` texture) — rigged characters (glTF JSON; artifact hosting serves .json but not .glb) (animations trimmed to Idle/Walk/Run/Jump/Cheer/PickUp/Interact…)
 - `models/mobs/*.json` — rigged critters
 - `models/nature.json`, `models/ruins.json`, `models/sea.json` — static props, one named node per model
 - `models/village.json` — medieval village buildings (`tools/build-village.js`)
 - `models/interior.json` — medieval furniture for the five house interiors (`tools/build-props.js`)
+- `lh-combat.js` — sound/music, HP/MP/stamina/EXP, class skills, monsters
 - `models/tex/*.png` — gradient colour textures for flower/tree variants
 - `lh-models.js` — loads the models and swaps them into the game (falls back to the original low-poly shapes if loading fails)
 - `tools/build.js` — rebuilds the models from the original downloads: `npm i && node build.js <src> ../models && node tojson.js ../models/**/*.glb && node extract-images.js ../models/**/*.json`

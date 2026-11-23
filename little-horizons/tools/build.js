@@ -28,7 +28,7 @@ async function write(doc, file) {
 
 (async () => {
   // ---- player classes (KayKit Adventurers)
-  const KA = ['Idle', 'Walking_A', 'Running_A', 'Jump_Full_Short', 'Jump_Idle', 'Cheer', 'PickUp', 'Interact', 'Sit_Floor_Idle', 'Spellcasting'];
+  const KA = ['Idle', 'Walking_A', 'Running_A', 'Jump_Full_Short', 'Jump_Idle', 'Cheer', 'PickUp', 'Interact', 'Sit_Floor_Idle', 'Spellcasting', '1H_Melee_Attack_Slice_Diagonal', '2H_Melee_Attack_Spin', 'Spellcast_Shoot', 'Spellcast_Raise', '2H_Ranged_Shoot', 'Dualwield_Melee_Attack_Stab', 'Hit_A', 'Death_A', 'Dodge_Forward', 'Block'];
   const kay = {
     Knight: ['1H_Sword_Offhand', 'Badge_Shield', 'Rectangle_Shield', 'Spike_Shield', '2H_Sword'],
     Mage: ['Spellbook', 'Spellbook_open', '1H_Wand'],
@@ -41,7 +41,7 @@ async function write(doc, file) {
 
   // ---- cute monsters / critters
   for (const n of ['Mushroom', 'Pig', 'Chicken', 'Bee', 'Crab', 'Deer', 'Penguin', 'Panda', 'Ghost'])
-    await write(await slim(await io.read(`${SRC}/monsters/${n}.gltf`), ['Idle', 'Walk', 'Jump', 'Dance', 'Yes', 'Flying']), `${OUT}/mobs/${n}.glb`);
+    await write(await slim(await io.read(`${SRC}/monsters/${n}.gltf`), ['Idle', 'Walk', 'Jump', 'Dance', 'Yes', 'Flying', 'Death', 'HitRecieve', 'Bite_Front']), `${OUT}/mobs/${n}.glb`);
 
   // ---- static props: one GLB per group, each asset a named top-level node
   const groups = {

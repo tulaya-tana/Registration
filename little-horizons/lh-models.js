@@ -345,6 +345,9 @@
     add(4, 'table_small_decorated_A', 3, -1.5, 1.4); add(4, 'chair', 3, -.2, 1.3, P); add(4, 'rug_oval_A', -1, 1.5, 1.6); add(4, 'candle_triple', -6.6, -2.6, 1.2);
   }
 
+  // shared with lh-combat.js
+  window.LHM = { get PR() { return PR; }, rig, ld, MS, mobs, prep };
+
   // ---------- go
   playerModel();
   Promise.all([world(), village(), interiors(), npcModels(), critters()]).then(() => prog());
