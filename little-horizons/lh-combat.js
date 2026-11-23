@@ -74,12 +74,14 @@
 #st .bar i{position:absolute;inset:0 auto 0 0;border-radius:6px;transition:width .15s}
 #st .bar span{position:absolute;inset:0;text-align:center;font-size:9px;line-height:11px;color:#fff;text-shadow:0 1px 2px #0009;font-weight:700}
 #st .xp{height:5px}
-.b.cb{width:56px;height:56px;font-size:12px;overflow:hidden}
+.b.cb{width:56px;height:56px;overflow:hidden}
+#atk,.b.cb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1}
+.b .ic{display:block;height:24px;line-height:0}.b .ic img{width:24px!important;height:24px!important}#atk .ic,#atk .ic img{width:30px!important;height:30px!important}
 #atk{right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 156px);width:62px;height:62px;background:#e0634f}
 #sk1{right:90px;bottom:calc(env(safe-area-inset-bottom,0px) + 158px)}#sk2{right:164px;bottom:calc(env(safe-area-inset-bottom,0px) + 158px)}#sk3{right:164px;bottom:calc(env(safe-area-inset-bottom,0px) + 92px)}
 #sk1{background:#8e5bd9}#sk2{background:#4caf7a}#sk3{background:#4f8fd9}
 .b .cd{position:absolute;inset:0;border-radius:50%;pointer-events:none}
-.b .mp{position:absolute;bottom:3px;left:0;right:0;font-size:9px;font-weight:700;pointer-events:none}
+.b .mp{position:relative;font-size:10px;font-weight:800;letter-spacing:.2px;padding:1px 6px;border-radius:8px;background:#0003;pointer-events:none;white-space:nowrap}.b .mp:empty{display:none}
 #fxl{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:3}
 .dmg{position:absolute;font-weight:900;font-size:20px;color:#ffb347;text-shadow:0 2px 0 #7a2d00,0 0 4px #000a;transform:translate(-50%,-50%);white-space:nowrap}
 .dmg.crit{color:#ff5e5e;font-size:26px}.dmg.me{color:#c23bff}.dmg.heal{color:#5be37d}.dmg.xp{color:#7fe7ff;font-size:14px}
@@ -145,7 +147,7 @@ body.inroom #atk,body.inroom .cb{opacity:.35}`;
     $('stlv').textContent = 'Lv ' + C.lv; $('stcl').textContent = cls().n;
     set('bhp', 'thp', C.hp, maxHp()); set('bmp', 'tmp', C.mp, maxMp()); set('bst', 'tst', C.st, maxSt()); set('bxp', null, C.xp, needXp()); }
   function skillUI() { const k = cls(); BA.querySelector('.ic').innerHTML = icon(k.atk.ic); B1.querySelector('.ic').innerHTML = icon(k.s1.ic); B2.querySelector('.ic').innerHTML = icon(S2.ic); B3.querySelector('.ic').innerHTML = icon(S3.ic);
-    B1.querySelector('.mp').textContent = k.s1.mp + ' MP'; B2.querySelector('.mp').textContent = S2.mp + ' MP'; B3.querySelector('.mp').textContent = ''; }
+    B1.querySelector('.mp').textContent = k.s1.mp + ' MP'; B2.querySelector('.mp').textContent = S2.mp + ' MP'; B3.querySelector('.mp').textContent = S3.st + ' ST'; }
   const rb0 = window.onRebuild; window.onRebuild = function () { rb0 && rb0(); if (C) { hudUI(); skillUI(); } };
 
   // =====================================================================  FX helpers
@@ -225,7 +227,7 @@ body.inroom #atk,body.inroom .cb{opacity:.35}`;
   // =====================================================================  PLAYER COMBAT
   let DEAD = 0, deadAt = null, inv = 0, lastHurt = 0, cdA = 0, cd = [0, 0, 0], dash = null, tired = 0;
   const shots = [];
-  const canFight = () => play && C && !DEAD && !window.IN && !D;
+  const canFight = () => play && C && !DEAD && !window.IN && !D && !window.RACING;
   function nearest(maxD, cone) { let best = null, bd = maxD; const p = pl.position;
     foes.forEach(f => { if (f.dead || !f.r.w.visible) return; const d = Math.hypot(f.x - p.x, f.z - p.z); if (d > bd) return;
       if (cone) { const a = Math.atan2(f.x - p.x, f.z - p.z), da = Math.abs(Math.atan2(Math.sin(a - ry), Math.cos(a - ry))); if (da > cone) return; } bd = d; best = f; }); return best; }
@@ -307,7 +309,7 @@ body.inroom #atk,body.inroom .cb{opacity:.35}`;
       if (f.dead) { if (n > f.fade) w.visible = false; if (n > f.respawn) { f.dead = 0; f.hp = f.K.hp; f.x = f.hx; f.z = f.hz; f.aggro = 0; f.r.lock = 0; w.visible = true; f.r.play(f.K.fly ? 'Flying' : 'Idle'); } else return; }
       if (f.K.night) { w.visible = night; if (!night) { hpBar(f, 0); return; } }
       const d = Math.hypot(f.x - p.x, f.z - p.z); if (d > 70) { hpBar(f, 0); return; }
-      const pv = Math.hypot(p.x, p.z) < 24 || window.IN || DEAD || (window.FLY && p.y - H(p.x, p.z) > 6);
+      const pv = Math.hypot(p.x, p.z) < 24 || window.IN || window.RACING || DEAD || (window.FLY && p.y - H(p.x, p.z) > 6);
       const home = Math.hypot(f.x - f.hx, f.z - f.hz);
       if (!pv && d < (f.aggro ? 16 : 8) && home < (f.K.boss ? 30 : 22)) { f.aggro = 1; fighting = 1;
         f.a = Math.atan2(p.x - f.x, p.z - f.z); f.mv = d > 1.4 + (f.K.scale || 1) * .5;

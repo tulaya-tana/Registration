@@ -95,9 +95,11 @@
       list.forEach((a, i) => { d.position.set(a[0], a[1], a[2]); d.rotation.set(0, a[4] || 0, 0); d.scale.setScalar((a[3] || 1) * s); d.updateMatrix();
         im.setMatrixAt(i, tm.multiplyMatrices(d.matrix, rel)); });
       im.frustumCulled = false; sc.add(im); out.push(im); });
+    (window.LHI = window.LHI || []).push({ ims: out, list, rel: out.map(() => null) });
     return out;
   }
-  const put = (n, x, z, s = 1, ry = 0, y) => { const o = part(n); if (!o) return null; o.scale.setScalar(s); o.rotation.y = ry; o.position.set(x, y == null ? H(x, z) : y, z); sc.add(o); return o; };
+  const put = (n, x, z, s = 1, ry = 0, y) => { const o = part(n); if (!o) return null; o.userData.placed = n;
+    if (H(x, z) < WL + .3) { const q = findDry(x, z, .8, 12); if (y != null) y += H(q[0], q[1]) - H(x, z); x = q[0]; z = q[1]; } o.scale.setScalar(s); o.rotation.y = ry; o.position.set(x, y == null ? H(x, z) : y, z); sc.add(o); return o; };
   const RD = () => R();
 
   // ================= PLAYER & NPCs (KayKit Adventurers)
@@ -220,7 +222,7 @@
       // ---- palms, gems, fish
       (LT.palms || []).forEach((g, i) => { g.visible = false; put('PalmTree_' + (i % 3 + 1), g.position.x, g.position.z, 1.45, RD() * 6, g.position.y); });
       for (let k = 0, n = 0; k < 400 && n < 8; k++) { const x = -70 + RD() * 140, z = 50 + RD() * 10, h = H(x, z); if (h > .1 && h < 1.4) { n++; put('PalmTree_' + (n % 3 + 1), x, z, 1.3 + RD() * .3, RD() * 6); cols.push([x, z, .4]); } }
-      put('Bucket_Fishes', 10.5, 48.5, 1.1, .5);
+      { const q = BLDG._bucket || [10.5, 46]; put('Bucket_Fishes', q[0], q[1], 1.1, .5); }
       items.forEach((it, k) => { if (it.t != 'gem') return; const o = part(k % 2 ? 'Gem_Pink' : 'Gem_Blue'); if (!o) return;
         o.scale.setScalar(.85); o.position.y = .55; o.traverse(c => { if (c.isMesh) c.material.emissive = new T.Color(k % 2 ? 0x551122 : 0x114433); }); it.g.add(o); hideKids(it.g, [o]); gems.push(o); });
       const FN = ['Clownfish', 'BlueTang', 'Goldfish', 'Koi', 'Puffer', 'ButterflyFish', 'Betta', 'YellowTang', 'MoorishIdol'];
@@ -252,6 +254,7 @@
       if (now > PR.lock) { if (window.FLY) PR.play('Jump_Idle', .6); else if (sw) PR.play('Running_A', .75); else if (!gr) PR.play('Jump_Idle');
         else if (spd > 6.2) PR.play('Running_A', spd / 7); else if (spd > .35) PR.play('Walking_A', Math.max(.6, spd / 3.6)); else PR.play('Idle'); }
       PR.mx.update(dt); pm.position.y = sw ? .45 : 0; }
+    keepNpcsDry();
     // villagers
     NP.forEach(n => { const r = n.rig; if (!r || !near(n.x, n.z)) return; const mv = Math.hypot(n.x - n.px, n.z - n.pz) / Math.max(dt, 1e-3); n.px = n.x; n.pz = n.z;
       const d = Math.hypot(n.x - p.x, n.z - p.z);
@@ -286,22 +289,60 @@
 
   // ================= VILLAGE: medieval buildings (KayKit Medieval Hexagon)
   let fan = null;
-  async function village() {
-    const g = await ld('village.json'); if (!g) return; libAdd(g);
-    const HX = [[-14, -8], [14, -9], [15, 12], [-15, 13], [0, -19]];
-    // name, scale (buildings are ~1 unit; the old houses were 5x5 with the door facing +z)
-    const BD = [['Shop', 4.4], ['Library', 5.6], ['Cafe', 5.2], ['PipHouse', 5.6], ['MyHouse', 6.6]];
-    const old = sc.children.filter(o => o.isGroup && HX.some(q => Math.abs(o.position.x - q[0]) < .01 && Math.abs(o.position.z - q[1]) < .01));
-    if (!HX.every(q => LIB[BD[0][0]])) return; old.forEach(o => o.visible = false);
-    HX.forEach((q, i) => put(BD[i][0], q[0], q[1], BD[i][1], 0, H(q[0], q[1]) - .25));
-    // windmill on the hill (spinning fan) and the village well
-    if (typeof wm !== 'undefined' && LIB.Windmill) { wm.children.forEach(c => c.visible = false); const w = put('Windmill', wm.position.x, wm.position.z, 6, -P / 2, wm.position.y - .3);
-      w && w.traverse(c => { if (/fan/.test(c.name) && !fan) fan = c; }); cols.push([wm.position.x, wm.position.z, 2.6]); }
-    const well = sc.children.find(o => o.isGroup && Math.abs(o.position.x - 8) < .01 && Math.abs(o.position.z - 3) < .01);
-    if (well && LIB.Well) { well.visible = false; put('Well', 8, 3, 2.6, 0, well.position.y - .1); }
-    // a couple of extra cottages on the village edge
-    [[-24, -2, 'HomeBlue', .6], [22, 22, 'HomeYellow', -2.4]].forEach(q => { put(q[2], q[0], q[1], 4.6, q[3], H(q[0], q[1]) - .25); cols.push([q[0], q[1], 3]); });
+  // ================= GROUND PADS: buildings stand on flat dry land, never in the water
+  // Each pad flattens the ground to one height (and lifts it above the water line when needed), blending out over 3 units.
+  const PADS = [];
+  const dryAt = (x, z, r, minH = WL + .6) => { for (let a = 0; a < 8; a++) { if (H(x + Math.cos(a * P / 4) * r, z + Math.sin(a * P / 4) * r) < minH) return false; } return H(x, z) >= minH; };
+  function findDry(x0, z0, r, maxD, ok = () => true) { for (let d = 0; d <= maxD; d += 1) for (let a = 0; a < 16; a++) { const x = x0 + Math.cos(a * P / 8) * d, z = z0 + Math.sin(a * P / 8) * d; if (dryAt(x, z, r) && ok(x, z)) return [x, z]; } return [x0, z0]; }
+  const BLDG = { Shop: [-14, -8, 6.5, 6.2], Library: [14, -9, 7.8, 5], Cafe: [15, 12, 7, 5.2], PipHouse: [-15, 13, 7, 4.4], MyHouse: [0, -19, 10, 4.8], HomeYellow: [22, 22, 7, 4.4] };
+  function groundPads() {
+    // the blue cottage used to sit in the pond: find it a dry spot on the village edge
+    const far = (x, z, d) => Object.values(BLDG).every(b => Math.hypot(b[0] - x, b[1] - z) > d);
+    let hb = null; for (let k = 0; k < 64 && !hb; k++) { const a = P + k * P / 32, r = 27 + (k % 3) * 3, x = Math.cos(a) * r, z = Math.sin(a) * r;
+      if (dryAt(x, z, 5, WL + .8) && far(x, z, 12) && NP.every(n => Math.hypot(n.h[0] - x, n.h[1] - z) > 7) && reg(x, z) != 2 && reg(x, z) != 3) hb = [x, z]; }
+    BLDG.HomeBlue = [...(hb || [-28, -14]), 10, 4.8];
+    Object.values(BLDG).forEach(b => PADS.push([b[0], b[1], b[3], Math.max(H(b[0], b[1]), WL + 1)]));
+    PADS.push([62, 5, 3, H(62, 5)], [20, 55, 2.6, 0], [-55, -55, 3.4, H(-55, -55)]);
+    // uncle Salt's spot (and his fish bucket) was in the sea
+    const salt = NP[1], s2 = findDry(salt.h[0], salt.h[1], 1.5, 14); salt.h = s2; salt.x = s2[0]; salt.z = s2[1]; salt.t = s2.slice(); BLDG._bucket = [s2[0] + 2.2, s2[1] - 1];
+    const h0 = H;
+    H = (x, z) => { let h = h0(x, z); for (const q of PADS) { const d = Math.hypot(x - q[0], z - q[1]); if (d < q[2] + 3) { const k = d < q[2] ? 1 : 1 - sm(0, 1, (d - q[2]) / 3); h += (q[3] - h) * k; } } return h; };
+    // reshape the terrain mesh and the minimap to match
+    const ter = sc.children.find(o => o.isMesh && o.geometry.parameters && o.geometry.parameters.width == 200 && o.material.vertexColors);
+    if (ter) { const pa = ter.geometry.attributes.position, co = ter.geometry.attributes.color, c = new T.Color();
+      for (let i = 0; i < pa.count; i++) { const x = pa.getX(i), z = pa.getZ(i); if (!PADS.some(q => Math.hypot(x - q[0], z - q[1]) < q[2] + 3)) continue;
+        const h = H(x, z); pa.setY(i, h); if (h > WL + .5) { c.set(reg(x, z) == 3 ? 0xa8b58a : 0x9bd47a); co.setXYZ(i, c.r, c.g, c.b); } }
+      pa.needsUpdate = co.needsUpdate = true; ter.geometry.computeVertexNormals(); }
+    const b = mb.getContext('2d'); for (let i = 0; i < 80; i++) for (let j = 0; j < 80; j++) { const x = i * 2.5 - 100, z = j * 2.5 - 100, h = H(x, z); b.fillStyle = h < WL ? '#6cc6e8' : h < .3 ? '#f0dca8' : reg(x, z) == 4 ? '#6fa05a' : '#9bd47a'; b.fillRect(i * 2, j * 2, 2, 2); }
+    items.forEach(it => it.g.position.y = H(it.x, it.z));
+    // the lamp post that stood right in front of my front door moves aside
+    sc.children.filter(o => o.isInstancedMesh && o.count == 11).forEach(m => { const mt = new T.Matrix4(), ps = new T.Vector3(), q = new T.Quaternion(), sv = new T.Vector3();
+      m.getMatrixAt(8, mt); mt.decompose(ps, q, sv); if (Math.hypot(ps.x, ps.z + 14) < .1) { ps.set(3.4, H(3.4, -13), -13); mt.compose(ps, q, sv); m.setMatrixAt(8, mt); m.instanceMatrix.needsUpdate = true; } });
   }
+  // villagers never wander onto the water
+  function keepNpcsDry() { NP.forEach(n => { if (H(n.x, n.z) < WL + .25) { n.x = n.dx == null ? n.h[0] : n.dx; n.z = n.dz == null ? n.h[1] : n.dz; n.t = n.h.slice(); } else { n.dx = n.x; n.dz = n.z; } }); }
+
+  // ================= VILLAGE: medieval buildings (KayKit Medieval Hexagon), sized so the doors fit a person
+  async function village() {
+    const g = await ld('village.json'); if (!g) return; libAdd(g); if (!LIB.Shop) return;
+    const HX = [[-14, -8], [14, -9], [15, 12], [-15, 13], [0, -19]], names = ['Shop', 'Library', 'Cafe', 'PipHouse', 'MyHouse'];
+    sc.children.filter(o => o.isGroup && HX.some(q => Math.abs(o.position.x - q[0]) < .01 && Math.abs(o.position.z - q[1]) < .01)).forEach(o => o.visible = false);
+    const doorZ = {};
+    Object.entries(BLDG).forEach(([n, b]) => { if (n[0] == '_') return; const o = put(n, b[0], b[1], b[2], 0, H(b[0], b[1]) - .2); if (!o) return;
+      const bb = new T.Box3().setFromObject(o), hw = (bb.max.x - bb.min.x) / 2, hd = (bb.max.z - bb.min.z) / 2;
+      const c = cols.find(q => Math.abs(q[0] - b[0]) < .01 && Math.abs(q[1] - b[1]) < .01); const R = Math.max(hw, hd) * .92;
+      if (c) c[2] = R; else cols.push([b[0], b[1], R]); doorZ[n] = bb.max.z; });
+    // move the "enter" spots to the new, bigger front doors
+    (LX.IA || []).forEach(a => { if (a.room != -1 || !/^เข้า/.test(a.tx)) return; const i = HX.findIndex(q => Math.abs(q[0] - a.x) < .01); if (i < 0 || doorZ[names[i]] == null) return;
+      a.z = doorZ[names[i]] + .9; a.r = 2.6; });
+    if (LX.HS) LX.HS.forEach((h, i) => { if (doorZ[names[i]] != null) h[1] = doorZ[names[i]] - 3.5 + 1.6; });   // where you come out
+    // windmill on the hill (spinning fan) and the village well
+    if (typeof wm !== 'undefined' && LIB.Windmill) { wm.children.forEach(c => c.visible = false); const w = put('Windmill', wm.position.x, wm.position.z, 8, -P / 2, H(wm.position.x, wm.position.z) - .3);
+      w && w.traverse(c => { if (/fan/.test(c.name) && !fan) fan = c; }); cols.push([wm.position.x, wm.position.z, 3.4]); }
+    const well = sc.children.find(o => o.isGroup && Math.abs(o.position.x - 8) < .01 && Math.abs(o.position.z - 3) < .01);
+    if (well && LIB.Well) { well.visible = false; put('Well', 8, 3, 2.8, 0, H(8, 3) - .1); }
+  }
+
 
   // ================= INTERIORS: medieval furniture (KayKit Dungeon Remastered + Furniture Bits, Quaternius bookcase)
   async function interiors() {
@@ -349,6 +390,7 @@
   window.LHM = { get PR() { return PR; }, rig, ld, MS, mobs, prep };
 
   // ---------- go
+  groundPads();
   playerModel();
   Promise.all([world(), village(), interiors(), npcModels(), critters()]).then(() => prog());
 })();

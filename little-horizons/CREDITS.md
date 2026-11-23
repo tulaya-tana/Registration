@@ -9,6 +9,8 @@ All models are **CC0 1.0 (public domain)**: free for personal and commercial use
 | House interiors: tables, stools, chairs, barrels, kegs, crates, bed, trunks, candles, wall torches, shelves | KayKit Dungeon Remastered 1.0 | Kay Lousberg | https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0 |
 | Rugs, book set | KayKit Furniture Bits 1.0 | Kay Lousberg | https://github.com/KayKit-Game-Assets/KayKit-Furniture-Bits-1.0 |
 | Library bookcases | Ultimate Modular Ruins | Quaternius | https://quaternius.com/packs/ultimatemodularruins.html |
+| Race horses | Ultimate Animated Animals | Quaternius | https://quaternius.com/packs/ultimateanimatedanimals.html |
+| Abandoned cart at the stable | Ultimate Modular Ruins | Quaternius | https://quaternius.com/packs/ultimatemodularruins.html |
 | Critters (Mushroom, Pig, Chicken, Panda, Penguin, Crab, Deer, Bee, Ghost) | Cute Animated Monsters | Quaternius | https://quaternius.com/packs/cutemonsters.html |
 | Flowers, mushrooms, fantasy trees, bushes (+ colour textures) | Textured Fantasy Nature | Quaternius | https://quaternius.com/packs/texturedfantasynature.html |
 | Trees, bushes, rocks, grass | Simple Nature Pack | Quaternius | https://quaternius.com/packs/simplenature.html |
@@ -27,6 +29,7 @@ All models are **CC0 1.0 (public domain)**: free for personal and commercial use
 - `models/village.json` — medieval village buildings (`tools/build-village.js`)
 - `models/interior.json` — medieval furniture for the five house interiors (`tools/build-props.js`)
 - `lh-combat.js` — sound/music, HP/MP/stamina/EXP, class skills, monsters
+- `lh-race.js` — hidden chariot race (3 tracks, AI rivals, score board); `models/race.json`, `models/mobs/Horse*.json` (`tools/build-race.js`)
 - `models/tex/*.png` — gradient colour textures for flower/tree variants
 - `lh-models.js` — loads the models and swaps them into the game (falls back to the original low-poly shapes if loading fails)
 - `tools/build.js` — rebuilds the models from the original downloads: `npm i && node build.js <src> ../models && node tojson.js ../models/**/*.glb && node extract-images.js ../models/**/*.json`

@@ -307,7 +307,7 @@ window.post=(dt,t,p)=>{const inR=room>=0;IN=inR?1:0;if(!inR&&p.x>96)p.x=96;if(in
  if(cam.position.y<WL){sc.fog.color.set(0x3a8fb0);sc.fog.near=1;sc.fog.far=30;sc.background=sc.fog.color}
  let bd=9,pick=null;for(const a of IA){if(a.room!=room||(a.ok&&!a.ok()))continue;if(a.y!=null&&Math.abs(p.y-a.y)>5)continue;if(a.sw&&!sw)continue;const l=Math.hypot(a.x-p.x,a.z-p.z);if(l<a.r&&l<bd){bd=l;pick=a}}
  if(pick&&!fs)cur=pick;const pe=$('pr');if(cur&&!D){pe.innerHTML='E · '+cur.tx.replace(EM,'');pe.style.display='block'}else pe.style.display='none'};
-window.LHX={get CH(){return CH},CL,HC,wg,sway,sky,uw};
+window.LHX={get CH(){return CH},CL,HC,wg,sway,sky,uw,IA,HS};
 })();
 </script><script>
 (()=>{
@@ -371,4 +371,5 @@ window.LHT={TY,treeM,rk,rkM,bu,buM,ruM,palms};
 </script>
 <script src="lh-models.js"></script>
 <script src="lh-combat.js"></script>
+<script src="lh-race.js"></script>
 </body></html>
