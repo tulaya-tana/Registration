@@ -13,9 +13,9 @@ All models are **CC0 1.0 (public domain)**: free for personal and commercial use
 | Palm trees, fish bucket, gems | Pirate Kit | Quaternius | https://quaternius.com/packs/piratekit.html |
 
 ## Files
-- `models/chars/*.glb` — rigged characters (animations trimmed to Idle/Walk/Run/Jump/Cheer/PickUp/Interact…)
-- `models/mobs/*.glb` — rigged critters
-- `models/nature.glb`, `models/ruins.glb`, `models/sea.glb` — static props, one named node per model
+- `models/chars/*.json` (+ `_0.png` texture) — rigged characters (glTF JSON; artifact hosting serves .json but not .glb) (animations trimmed to Idle/Walk/Run/Jump/Cheer/PickUp/Interact…)
+- `models/mobs/*.json` — rigged critters
+- `models/nature.json`, `models/ruins.json`, `models/sea.json` — static props, one named node per model
 - `models/tex/*.png` — gradient colour textures for flower/tree variants
 - `lh-models.js` — loads the models and swaps them into the game (falls back to the original low-poly shapes if loading fails)
-- `tools/build.js` — rebuilds the GLBs from the original downloads (`npm i && node build.js <src> ../models`)
+- `tools/build.js` — rebuilds the models from the original downloads: `npm i && node build.js <src> ../models && node tojson.js ../models/**/*.glb && node extract-images.js ../models/**/*.json`

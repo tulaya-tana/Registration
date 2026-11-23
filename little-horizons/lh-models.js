@@ -85,7 +85,7 @@
   let PR = null, want = '';
   async function playerModel() {
     const C = LX.CH, key = C.c + '_' + C.o + '_' + C.h; want = key;
-    if (!PR || PR.key != key) { const g = await ld('chars/' + CM[C.c] + '.glb'); if (!g || want != key) return;
+    if (!PR || PR.key != key) { const g = await ld('chars/' + CM[C.c] + '.json'); if (!g || want != key) return;
       const r = rig(g, KS, { em: 0x1a1a1a }); dress(r.o, HUE[C.o], C.h); r.key = key; r.play('Idle'); PR = r; }
     if (PR.w.parent !== pm) pm.add(PR.w); hideKids(pm, [PR.w, LX.wg]);
   }
@@ -93,16 +93,16 @@
 
   const NPM = [['Mage', 110, 0xff9fc8], ['Barbarian', 0, 0x4f7fd9], ['Rogue_Hooded', 0, null], ['Mage', 0, 0xb8a1ff]];
   async function npcModels() {
-    await Promise.all(NP.map(async (n, i) => { const [f, hue, cape] = NPM[i], g = await ld('chars/' + f + '.glb'); if (!g) return;
+    await Promise.all(NP.map(async (n, i) => { const [f, hue, cape] = NPM[i], g = await ld('chars/' + f + '.json'); if (!g) return;
       const r = rig(g, KS, { em: 0x1a1a1a }); dress(r.o, hue, cape); r.play('Idle'); n.rig = r; n.m.add(r.w); hideKids(n.m, [r.w]); n.px = n.x; n.pz = n.z; n.m.position.set(n.x, Math.max(H(n.x, n.z), WL), n.z); }));
-    if (window.SHOPK) { const g = await ld('chars/Rogue.glb'); if (g) { const r = rig(g, KS, { em: 0x1a1a1a }); dress(r.o, 200, 0xf2c14e); r.play('Idle');
+    if (window.SHOPK) { const g = await ld('chars/Rogue.json'); if (g) { const r = rig(g, KS, { em: 0x1a1a1a }); dress(r.o, 200, 0xf2c14e); r.play('Idle');
       SHOPK.add(r.w); hideKids(SHOPK, [r.w]); SHOPK.rig = r; } }
   }
 
   // ================= CRITTERS (Quaternius Cute Monsters)
   const MS = { Mushroom: .7, Pig: .66, Chicken: .58, Panda: .7, Penguin: .62, Crab: .6, Deer: .85, Bee: .5, Ghost: .8 }, mobs = [];
   async function mob(kind, x, z, o = {}) {
-    const g = await ld('mobs/' + kind + '.glb'); if (!g) return null;
+    const g = await ld('mobs/' + kind + '.json'); if (!g) return null;
     const r = rig(g, MS[kind] * (o.s || 1), { em: 0x202020 }); r.play(o.fly ? 'Flying' : 'Idle');
     if (o.ghost) r.o.traverse(c => { if (c.isMesh) { c.material.transparent = true; c.material.opacity = .8; c.material.emissive.set(0x7788aa); } });
     r.w.position.set(x, H(x, z), z); r.w.rotation.y = RD() * 6; sc.add(r.w);
@@ -111,7 +111,7 @@
   async function critters() {
     // village critters take over the bunnies' AI
     const RB = ['Mushroom', 'Pig', 'Chicken', 'Mushroom', 'Panda', 'Pig', 'Chicken', 'Penguin'];
-    await Promise.all(rab.map(async (a, i) => { const g = await ld('mobs/' + RB[i] + '.glb'); if (!g) return;
+    await Promise.all(rab.map(async (a, i) => { const g = await ld('mobs/' + RB[i] + '.json'); if (!g) return;
       const r = rig(g, MS[RB[i]], { em: 0x202020 }); r.play('Idle'); a.g.add(r.w); hideKids(a.g, [r.w]); a.rig = r; }));
     const spot = (n, ok, f) => { for (let i = 0, k = 0; i < n && k < 600; k++) { const x = -92 + RD() * 184, z = -92 + RD() * 184, h = H(x, z); if (ok(x, z, h, reg(x, z))) { i++; f(x, z); } } };
     const jobs = [];
@@ -126,7 +126,7 @@
   // ================= WORLD: trees, flowers, bushes, rocks, ruins, sea
   const kill = arr => (arr || []).forEach(o => { if (o) { o.visible = false; if (o.parent) o.parent.remove(o); } });
   async function world() {
-    const [gN, gR, gS] = await Promise.all([ld('nature.glb'), ld('ruins.glb'), ld('sea.glb')]);
+    const [gN, gR, gS] = await Promise.all([ld('nature.json'), ld('ruins.json'), ld('sea.json')]);
     [gN, gR, gS].forEach(libAdd);
     const TX = {}; (await Promise.all(['Flower', 'Flower2', 'Flower3', 'Flower4', 'Mushroom', 'Tree', 'Tree2', 'Tree3', 'Tree4', 'Tree5', 'Tree6', 'Tree7'].map(async n => [n, await tex(n)]))).forEach(([n, t]) => TX[n] = t);
     const split = (l, k) => Array.from({ length: k }, (_, j) => l.filter((_, i) => i % k == j));
